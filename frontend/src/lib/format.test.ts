@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampNumber, compactAddress, estimateMinimum } from "./format";
+import { clampNumber, compactAddress, estimateMinimum, parseTransactionError } from "./format";
 
 describe("format utilities", () => {
   it("clamps slippage to safe percentage boundaries", () => {
@@ -13,5 +13,11 @@ describe("format utilities", () => {
 
   it("compacts an EVM address", () => {
     expect(compactAddress("0x1234567890abcdef")).toBe("0x1234…cdef");
+  });
+
+  it("turns wallet rejection errors into readable feedback", () => {
+    expect(parseTransactionError(new Error("User rejected the request"))).toBe(
+      "The wallet request was rejected.",
+    );
   });
 });

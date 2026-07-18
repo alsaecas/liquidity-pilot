@@ -43,4 +43,105 @@ export const pilotAbi = [
     ],
     outputs: [{ name: "amountOut", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "zapIn",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "p",
+        type: "tuple",
+        components: [
+          { name: "tokenA", type: "address" },
+          { name: "tokenB", type: "address" },
+          { name: "inputToken", type: "address" },
+          { name: "amountIn", type: "uint256" },
+          { name: "minSwapOut", type: "uint256" },
+          { name: "minAmountA", type: "uint256" },
+          { name: "minAmountB", type: "uint256" },
+          { name: "minLiquidity", type: "uint256" },
+          { name: "recipient", type: "address" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [
+      { name: "amountAUsed", type: "uint256" },
+      { name: "amountBUsed", type: "uint256" },
+      { name: "liquidity", type: "uint256" },
+    ],
+  },
+  {
+    type: "function",
+    name: "removeLiquidity",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "p",
+        type: "tuple",
+        components: [
+          { name: "tokenA", type: "address" },
+          { name: "tokenB", type: "address" },
+          { name: "liquidity", type: "uint256" },
+          { name: "minAmountA", type: "uint256" },
+          { name: "minAmountB", type: "uint256" },
+          { name: "recipient", type: "address" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [
+      { name: "amountA", type: "uint256" },
+      { name: "amountB", type: "uint256" },
+    ],
+  },
+  {
+    type: "function",
+    name: "zapOutToSingleToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "p",
+        type: "tuple",
+        components: [
+          { name: "tokenA", type: "address" },
+          { name: "tokenB", type: "address" },
+          { name: "outputToken", type: "address" },
+          { name: "liquidity", type: "uint256" },
+          { name: "minAmountA", type: "uint256" },
+          { name: "minAmountB", type: "uint256" },
+          { name: "minSwapOut", type: "uint256" },
+          { name: "recipient", type: "address" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [{ name: "totalOutput", type: "uint256" }],
+  },
+] as const;
+
+export const erc20Abi = [
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
+export const factoryAbi = [
+  {
+    type: "function",
+    name: "getPair",
+    stateMutability: "view",
+    inputs: [
+      { name: "tokenA", type: "address" },
+      { name: "tokenB", type: "address" },
+    ],
+    outputs: [{ name: "pair", type: "address" }],
+  },
 ] as const;

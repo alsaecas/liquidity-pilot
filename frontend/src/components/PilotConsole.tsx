@@ -1,12 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { compactAddress, estimateMinimum, formatTokenAmount } from "@/lib/format";
-import { arbitrumV2, pilotAddress } from "@/lib/contract";
+import { parseUnits, zeroAddress, type Address, type Hash } from "viem";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import {
+  compactAddress,
+  estimateMinimum,
+  formatTokenAmount,
+  parseTransactionError,
+} from "@/lib/format";
+import {
+  arbitrumTokens,
+  arbitrumV2,
+  erc20Abi,
+  factoryAbi,
+  pilotAbi,
+  pilotAddress,
+} from "@/lib/contract";
 import { TransactionStage } from "./TransactionStage";
 
 type Mode = "swap" | "add" | "remove";
 type RemoveStyle = "pair" | "single";
+type TransactionPhase = "idle" | "approving" | "executing" | "confirmed" | "error";
 
 const modes: { id: Mode; label: string }[] = [
   { id: "swap", label: "Swap" },
@@ -23,6 +38,15 @@ export function PilotConsole() {
   const [deadline, setDeadline] = useState("20");
   const [removeStyle, setRemoveStyle] = useState<RemoveStyle>("pair");
   const [percentage, setPercentage] = useState(50);
+  const [minTokenA, setMinTokenA] = useState("1");
+  const [minTokenB, setMinTokenB] = useState("1");
+  const [minSingleSwap, setMinSingleSwap] = useState("1");
+  const [phase, setPhase] = useState<TransactionPhase>("idle");
+  const [transactionHash, setTransactionHash] = useState<Hash | null>(null);
+  const [transactionError, setTransactionError] = useState("");
+  const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
+  const { writeContractAsync } = useWriteContract();
   const demoMode = pilotAddress === null;
 
   const parsedAmount = Number.parseFloat(amount) || 0;
@@ -37,6 +61,127 @@ export function PilotConsole() {
       lp: parsedAmount * 0.4978,
     };
   }, [parsedAmount, parsedSlippage]);
+  const stageIndex =
+    phase === "approving" ? 0 : phase === "executing" ? 1 : phase === "confirmed" ? 2 : -1;
+  const isWorking = phase === "approving" || phase === "executing";
+
+  async function executeFlow() {
+    if (!pilotAddress || !address || !publicClient) return;
+    setTransactionError("");
+    setTransactionHash(null);
+
+    try {
+      const deadlineValue = BigInt(
+        Math.floor(Date.now() / 1000) + Math.max(Number(deadline) || 1, 1) * 60,
+      );
+      const slippageBps = BigInt(Math.min(Math.max(Math.round(parsedSlippage * 100), 0), 10_000));
+      const applySlippage = (value: bigint) => (value * (10_000n - slippageBps)) / 10_000n;
+      const path = [arbitrumTokens.USDT.address, arbitrumTokens.DAI.address] as const;
+      const amountIn = parseUnits(amount || "0", arbitrumTokens.USDT.decimals);
+      const liquidity = parseUnits(
+        ((128.42 * percentage) / 100).toFixed(8),
+        18,
+      );
+
+      let approvalToken: Address = arbitrumTokens.USDT.address;
+      let approvalAmount = amountIn;
+      if (mode === "remove") {
+        approvalToken = await publicClient.readContract({
+          address: arbitrumV2.factory,
+          abi: factoryAbi,
+          functionName: "getPair",
+          args: path,
+        });
+        if (approvalToken === zeroAddress) throw new Error("The selected V2 pair does not exist.");
+        approvalAmount = liquidity;
+      }
+      if (approvalAmount <= 0n) throw new Error("Enter an amount greater than zero.");
+
+      setPhase("approving");
+      const approvalHash = await writeContractAsync({
+        address: approvalToken,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [pilotAddress, approvalAmount],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approvalHash });
+
+      setPhase("executing");
+      let hash: Hash;
+      if (mode === "swap") {
+        const quote = await publicClient.readContract({
+          address: pilotAddress,
+          abi: pilotAbi,
+          functionName: "quoteSwap",
+          args: [amountIn, path],
+        });
+        hash = await writeContractAsync({
+          address: pilotAddress,
+          abi: pilotAbi,
+          functionName: "swapExactTokens",
+          args: [amountIn, applySlippage(quote[1]), path, address, deadlineValue],
+        });
+      } else if (mode === "add") {
+        const swapAmount = amountIn / 2n;
+        const quote = await publicClient.readContract({
+          address: pilotAddress,
+          abi: pilotAbi,
+          functionName: "quoteSwap",
+          args: [swapAmount, path],
+        });
+        hash = await writeContractAsync({
+          address: pilotAddress,
+          abi: pilotAbi,
+          functionName: "zapIn",
+          args: [{
+            tokenA: path[0],
+            tokenB: path[1],
+            inputToken: path[0],
+            amountIn,
+            minSwapOut: applySlippage(quote[1]),
+            minAmountA: applySlippage(amountIn - swapAmount),
+            minAmountB: applySlippage(quote[1]),
+            minLiquidity: 1n,
+            recipient: address,
+            deadline: deadlineValue,
+          }],
+        });
+      } else {
+        const removal = {
+          tokenA: path[0],
+          tokenB: path[1],
+          liquidity,
+          minAmountA: parseUnits(minTokenA || "0", arbitrumTokens.USDT.decimals),
+          minAmountB: parseUnits(minTokenB || "0", arbitrumTokens.DAI.decimals),
+          recipient: address,
+          deadline: deadlineValue,
+        } as const;
+        hash = removeStyle === "pair"
+          ? await writeContractAsync({
+              address: pilotAddress,
+              abi: pilotAbi,
+              functionName: "removeLiquidity",
+              args: [removal],
+            })
+          : await writeContractAsync({
+              address: pilotAddress,
+              abi: pilotAbi,
+              functionName: "zapOutToSingleToken",
+              args: [{
+                ...removal,
+                outputToken: path[1],
+                minSwapOut: parseUnits(minSingleSwap || "0", arbitrumTokens.DAI.decimals),
+              }],
+            });
+      }
+      await publicClient.waitForTransactionReceipt({ hash });
+      setTransactionHash(hash);
+      setPhase("confirmed");
+    } catch (error) {
+      setTransactionError(parseTransactionError(error));
+      setPhase("error");
+    }
+  }
 
   return (
     <section aria-labelledby="console-heading" className="console-shell" id="app">
@@ -115,6 +260,22 @@ export function PilotConsole() {
                   </button>
                 ))}
               </div>
+              <div className="settings-row removal-minimums">
+                <label>
+                  Min USDT
+                  <span><input min="0" onChange={(event) => setMinTokenA(event.target.value)} type="number" value={minTokenA} /></span>
+                </label>
+                <label>
+                  Min DAI
+                  <span><input min="0" onChange={(event) => setMinTokenB(event.target.value)} type="number" value={minTokenB} /></span>
+                </label>
+              </div>
+              {removeStyle === "single" && (
+                <label className="single-minimum">
+                  Minimum DAI from USDT swap
+                  <input min="0" onChange={(event) => setMinSingleSwap(event.target.value)} type="number" value={minSingleSwap} />
+                </label>
+              )}
             </>
           ) : (
             <label className="amount-field">
@@ -166,10 +327,36 @@ export function PilotConsole() {
             </label>
           </div>
 
-          <TransactionStage current={demoMode ? -1 : 0} labels={stageLabels} />
-          <button className="button button-action" disabled={demoMode} type="button">
-            {demoMode ? "Preview only — transactions disabled" : "Approve USDT"}
+          <TransactionStage current={stageIndex} labels={stageLabels} />
+          <button
+            className="button button-action"
+            disabled={demoMode || !isConnected || isWorking}
+            onClick={executeFlow}
+            type="button"
+          >
+            {demoMode
+              ? "Preview only — transactions disabled"
+              : !isConnected
+                ? "Connect wallet to continue"
+                : phase === "approving"
+                  ? "Waiting for approval…"
+                  : phase === "executing"
+                    ? "Executing route…"
+                    : phase === "confirmed"
+                      ? "Run another transaction"
+                      : `Approve & ${mode === "swap" ? "swap" : mode === "add" ? "add liquidity" : "remove"}`}
           </button>
+          {transactionError && <p className="transaction-error" role="alert">{transactionError}</p>}
+          {transactionHash && (
+            <a
+              className="transaction-link"
+              href={`https://arbiscan.io/tx/${transactionHash}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              View confirmed transaction on Arbiscan ↗
+            </a>
+          )}
           <p className="action-note">
             {demoMode
               ? "No transaction will be created in demo mode."

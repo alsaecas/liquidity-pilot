@@ -1,0 +1,24 @@
+# Foundry
+cache/
+out/
+broadcast/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/coverage/
+frontend/*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+
+# Tooling
+.DS_Store
+.playwright-cli/
+output/
+lcov.info
+coverage/

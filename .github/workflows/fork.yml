@@ -1,0 +1,21 @@
+name: Arbitrum fork
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fork:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ARBITRUM_RPC_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - run: forge install
+      - run: forge test --match-path "test/fork/*" --fork-url "$ARBITRUM_RPC_URL" -vvv
+        env:
+          ARBITRUM_RPC_URL: ${{ secrets.ARBITRUM_RPC_URL }}

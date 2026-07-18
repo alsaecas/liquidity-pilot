@@ -1,0 +1,27 @@
+name: Contracts
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Install dependencies
+        run: forge install
+      - name: Formatting
+        run: forge fmt --check
+      - name: Build
+        run: forge build
+      - name: Unit tests
+        run: forge test --match-path "test/unit/*" -vvv
+      - name: Coverage summary
+        run: forge coverage --match-path "test/unit/*" --report summary --ir-minimum

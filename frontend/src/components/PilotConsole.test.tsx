@@ -10,7 +10,7 @@ vi.mock("wagmi", () => ({
 }));
 vi.mock("@/hooks/useLiveLiquidityData", () => ({
   useLiveLiquidityData: () => ({
-    pairAddress: undefined, pairMissing: false, pairLoading: false,
+    pairAddress: undefined, pairMissing: false, pairInvalid: false, pairLoading: false,
     tokenABalance: undefined, tokenBBalance: undefined, tokenAAllowance: 0n,
     lpBalance: undefined, lpAllowance: 0n, lpDecimals: 18, token0: undefined, token1: undefined,
     reserves: undefined, totalSupply: undefined, quote: undefined, quoteLoading: false, quoteError: null,
@@ -30,7 +30,7 @@ const config: LiveDeployment = {
 const valid = {
   liveConfig: config, isConnected: true, correctChain: true, mode: "swap" as const,
   amountIn: 1_000_000n, balance: 2_000_000n, percentage: 50, lpBalance: 10n,
-  lpToRemove: 5n, pairMissing: false, quoteOutput: 999n,
+  lpToRemove: 5n, pairMissing: false, pairInvalid: false, quoteOutput: 999n,
   removal: { amountA: 100n, amountB: 100n }, singleSwapOutput: 99n,
   removeStyle: "pair" as const, slippageBps: 50n, deadlineMinutes: 20, gasBalance: 1n,
 };
@@ -59,5 +59,6 @@ describe("PilotConsole safety gates", () => {
     expect(getValidation({ ...valid, amountIn: null })).toMatch(/positive amount/);
     expect(getValidation({ ...valid, amountIn: 3_000_000n })).toMatch(/exceeds/);
     expect(getValidation({ ...valid, pairMissing: true })).toMatch(/does not exist/);
+    expect(getValidation({ ...valid, pairInvalid: true })).toMatch(/does not match/);
   });
 });

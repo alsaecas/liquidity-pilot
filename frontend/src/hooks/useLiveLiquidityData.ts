@@ -110,6 +110,14 @@ export function useLiveLiquidityData(
     chainId: config?.chainId,
     query: { enabled: baseEnabled },
   });
+  const pairInvalid = Boolean(
+    config && token0.data && token1.data
+    && new Set([token0.data.toLowerCase(), token1.data.toLowerCase()]).size === 2
+    && !(
+      new Set([token0.data.toLowerCase(), token1.data.toLowerCase()]).has(config.tokenA.address.toLowerCase())
+      && new Set([token0.data.toLowerCase(), token1.data.toLowerCase()]).has(config.tokenB.address.toLowerCase())
+    ),
+  );
 
   async function refresh() {
     await Promise.all([
@@ -122,6 +130,7 @@ export function useLiveLiquidityData(
   return {
     pairAddress,
     pairMissing: pair.isSuccess && !pairAddress,
+    pairInvalid,
     pairLoading: pair.isLoading,
     tokenABalance: tokenABalance.data,
     tokenBBalance: tokenBBalance.data,

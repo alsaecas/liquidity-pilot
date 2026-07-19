@@ -109,7 +109,7 @@ export function PilotConsole() {
   }, [amount]);
   const validation = getValidation({
     liveConfig, isConnected, correctChain, mode, amountIn, balance: data.tokenABalance,
-    percentage, lpBalance: data.lpBalance, lpToRemove, pairMissing: data.pairMissing,
+    percentage, lpBalance: data.lpBalance, lpToRemove, pairMissing: data.pairMissing, pairInvalid: data.pairInvalid,
     quoteOutput, removal, singleSwapOutput, removeStyle, slippageBps, deadlineMinutes,
     gasBalance: data.gasBalance,
   });
@@ -354,6 +354,7 @@ interface ValidationInput {
   lpBalance: bigint | undefined;
   lpToRemove: bigint | null;
   pairMissing: boolean;
+  pairInvalid: boolean;
   quoteOutput: bigint | undefined;
   removal: { amountA: bigint; amountB: bigint } | null;
   singleSwapOutput: bigint | undefined;
@@ -371,6 +372,7 @@ export function getValidation(input: ValidationInput): string | null {
   if (!Number.isInteger(input.deadlineMinutes) || input.deadlineMinutes < 1 || input.deadlineMinutes > 1_440) return "Deadline must be 1–1440 minutes.";
   if (input.gasBalance === 0n) return "The wallet has no native token available for gas.";
   if (input.pairMissing) return "The configured token pair does not exist.";
+  if (input.pairInvalid) return "The factory pair does not match the configured USDT/DAI tokens.";
   if (input.mode === "remove") {
     if (!input.percentage || !input.lpBalance || !input.lpToRemove) return "Choose a non-zero percentage of an available LP balance.";
     if (!input.removal || input.removal.amountA === 0n || input.removal.amountB === 0n) return "Pool reserves are unavailable for this removal.";

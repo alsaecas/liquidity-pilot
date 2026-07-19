@@ -22,3 +22,4 @@ frontend/.env.*
 output/
 lcov.info
 coverage/
+.vercel/

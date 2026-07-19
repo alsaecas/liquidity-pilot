@@ -9,6 +9,8 @@ LiquidityPilot lets a wallet swap ERC-20s, enter a direct V2 pool from one token
 position into both assets, or exit into one selected token. The Solidity contract is generic;
 the interface highlights Arbitrum's USDT/DAI pair.
 
+**Live demo:** [liquidity-pilot.vercel.app](https://liquidity-pilot.vercel.app)
+
 ![LiquidityPilot desktop interface](docs/screenshots/liquidity-pilot-console.png)
 
 > Status: portfolio/educational software. No Arbitrum mainnet deployment is claimed. The

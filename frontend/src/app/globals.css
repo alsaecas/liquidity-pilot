@@ -133,8 +133,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .amount-field > span:first-child, .output-field > span:first-child { color: var(--muted); font-size: 12px; }
 .balance { color: var(--muted); font-family: "Geist Mono", monospace; font-size: 10px; }
 .amount-field > div { align-items: center; display: flex; grid-column: 1 / -1; justify-content: space-between; margin-top: 12px; }
-.amount-field input[type="number"] { background: none; border: 0; color: var(--ink); font-size: 36px; font-weight: 520; min-width: 0; outline: none; width: 70%; }
+.amount-field input[type="number"], .amount-field input[type="text"] { background: none; border: 0; color: var(--ink); font-size: 36px; font-weight: 520; min-width: 0; outline: none; width: 70%; }
 .token-pill { align-items: center; background: #14241f; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); display: flex; font-weight: 600; gap: 8px; padding: 7px 10px; }
+.max-button { background: transparent; border: 0; color: var(--green); cursor: pointer; font-size: 10px; margin-left: 7px; padding: 2px; text-decoration: underline; }
 .token-icon { align-items: center; border-radius: 50%; display: inline-flex; font-size: 12px; font-style: normal; height: 22px; justify-content: center; width: 22px; }
 .token-usdt { background: #26a17b; color: white; }.token-dai { background: #f4b731; color: #2a1d00; }
 .output-field { align-items: center; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; margin-top: 13px; padding: 18px 5px 21px; }
@@ -151,6 +152,12 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .stage-active { color: var(--green); }
 .button-action { background: var(--green); color: #07110f; width: 100%; }
 .action-note { color: var(--muted); font-size: 10px; margin: 10px 0 0; text-align: center; }
+.approval-note { border-top: 1px solid var(--line); color: #81958f; font-size: 10px; line-height: 1.5; margin: 16px 0 0; padding-top: 13px; }
+.field-help, .field-warning { color: var(--muted); font-size: 10px; margin: 8px 0 0; }
+.field-warning { color: #e2be70; }
+.sr-status { color: var(--muted); font-size: 10px; margin: -15px 0 12px; text-align: center; }
+.sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.wallet-select select { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; color: var(--ink); min-height: 44px; padding: 0 12px; }
 .transaction-error { background: rgba(202, 83, 83, .09); border: 1px solid #673737; color: #f0a5a5; font-size: 11px; line-height: 1.45; margin: 10px 0 0; padding: 10px; }
 .transaction-link { color: var(--green); display: block; font-family: "Geist Mono", monospace; font-size: 10px; margin-top: 12px; text-align: center; }
 .flight-plan { background: #091310; border-left: 1px solid var(--line); padding: 32px; }

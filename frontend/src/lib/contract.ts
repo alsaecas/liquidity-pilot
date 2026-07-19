@@ -123,6 +123,30 @@ export const pilotAbi = [
 export const erc20Abi = [
   {
     type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "balance", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ name: "allowance", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "decimals",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "decimals", type: "uint8" }],
+  },
+  {
+    type: "function",
     name: "approve",
     stateMutability: "nonpayable",
     inputs: [
@@ -130,6 +154,42 @@ export const erc20Abi = [
       { name: "amount", type: "uint256" },
     ],
     outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
+export const pairAbi = [
+  ...erc20Abi,
+  {
+    type: "function",
+    name: "token0",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "token0", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "token1",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "token1", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "getReserves",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { name: "reserve0", type: "uint112" },
+      { name: "reserve1", type: "uint112" },
+      { name: "blockTimestampLast", type: "uint32" },
+    ],
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "totalSupply", type: "uint256" }],
   },
 ] as const;
 

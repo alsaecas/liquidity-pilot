@@ -28,3 +28,16 @@
 
 These are applications of the module's ideas to a broader, production-minded exercise, not
 criticism of the educational reference.
+# Live integration lessons
+
+The frontend integration reinforced that display state is part of protocol safety. LP ownership
+must come from the factory-resolved pair rather than a visual fixture; removal estimates must be
+proportional to reserves and total supply; and all minima must derive from the same quoted values
+used to explain the transaction. Bigint helpers prevent JavaScript floating-point values from
+silently entering calldata.
+
+Allowance handling is also a state machine, not a single button click. A sufficient approval
+should be reused, a zero allowance should receive only the exact required value, and a non-zero
+insufficient USDT-style allowance should first be reset. Simulation then separates deterministic
+contract failures from wallet rejection and mined execution failure. Only a successful receipt
+allows the UI to announce confirmation and invalidate live queries.

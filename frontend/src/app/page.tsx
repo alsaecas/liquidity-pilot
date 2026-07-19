@@ -27,7 +27,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <span className="eyebrow"><i /> Built for Arbitrum · V2 compatible</span>
-          <h1>Liquidity,<br /><em>on your heading.</em></h1>
+          <h1>Liquidity,<br /><em>on course.</em></h1>
           <p>
             Swap, enter a pool from one token, or exit to the asset you choose.
             One focused contract keeps custody measured in blocks—not sessions.

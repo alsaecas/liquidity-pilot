@@ -25,7 +25,8 @@ the interface highlights Arbitrum's USDT/DAI pair.
 - Deadlines, minimum outputs, exact USDT-compatible approvals, custom errors, and reentrancy guard
 - Deterministic Foundry unit/fuzz tests plus optional real Arbitrum fork integration
 - Responsive Next.js console with wallet connection, network guard, mode-specific previews,
-  approval/execution stages, risk messaging, and explicit demo state
+  debounced on-chain quotes, live balances/reserves/LP ownership, exact approval planning,
+  simulation-first execution stages, risk messaging, and explicit demo state
 
 ## What this project demonstrates
 
@@ -189,13 +190,30 @@ Supported environment variables:
 
 ```dotenv
 NEXT_PUBLIC_LIQUIDITY_PILOT_ADDRESS=
+NEXT_PUBLIC_DEPLOYMENT_CHAIN_ID=
+NEXT_PUBLIC_ROUTER_ADDRESS=
+NEXT_PUBLIC_FACTORY_ADDRESS=
+NEXT_PUBLIC_USDT_ADDRESS=
+NEXT_PUBLIC_DAI_ADDRESS=
+NEXT_PUBLIC_USDT_DECIMALS=6
+NEXT_PUBLIC_DAI_DECIMALS=18
 NEXT_PUBLIC_ARBITRUM_RPC_URL=
 NEXT_PUBLIC_LOCAL_RPC_URL=http://127.0.0.1:8545
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-If the contract address is blank, the site announces **Demo mode**, uses labelled sample
-estimates, and disables transaction submission. It never reports a fake success.
+Arbitrum deployments must use chain `42161`; local deployments must use `31337` and explicitly
+provide every router, factory, and token address. Missing, partial, invalid, or cross-network
+configuration falls back to **Demo mode** with an explanation. Demo values, including the
+`128.42 LP` illustration, are always labelled sample data and can never reach submission.
+
+In configured mode the console discovers the pair through the factory, verifies the pair
+composition, reads wallet token/LP balances and allowances, derives removal output from reserves
+and total supply, and obtains debounced contract quotes. Every main transaction is simulated
+before the wallet request. A sufficient user allowance is reused; otherwise only the exact input
+is approved, with a zero-reset first when a USDT-style token has a non-zero insufficient
+allowance. The user-to-Pilot allowance remains revocable and reusable; the contract itself clears
+only router-facing allowances after execution.
 
 ## Deployment and verification
 
@@ -232,14 +250,17 @@ Read the complete [security notes](docs/security.md).
 
 - Direct pairs only for zap entry/exit; configurable multi-hop paths are exposed for swaps.
 - No Permit2 or signature-based approval.
-- Demo estimates are illustrative unless a contract deployment and live reads are configured.
+- No LP mint quantity is promised before execution; add-liquidity previews show retained and
+  quoted paired assets while the router calculates actual liquidity.
+- Live execution requires a valid deployment, matching network, wallet balance, pair, quote,
+  deadline, slippage from 0–50%, and native gas balance.
 - Public-chain deployment and professional audit are outside the current project scope.
 
 ## Roadmap
 
 - Reserve-aware optimal one-sided swap sizing
 - Permit2 support
-- Live pool reserve and LP valuation preview
+- Independent audited deployment configuration and broader token registry
 - Broader multi-pool token registry
 - Independent security review before any real-funds recommendation
 

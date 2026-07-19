@@ -6,6 +6,6 @@
   <path d="m850 350 70-110 75 110-75 45-70-45Z" fill="none" stroke="#72e0b2" stroke-width="12"/>
   <path d="M920 242v150" stroke="#72e0b2" stroke-width="12"/>
   <text x="130" y="245" fill="#f3f7f5" font-family="Arial,sans-serif" font-size="76" font-weight="700">LiquidityPilot</text>
-  <text x="130" y="325" fill="#72e0b2" font-family="Arial,sans-serif" font-size="34">One-click V2 liquidity management</text>
-  <text x="130" y="380" fill="#8fa69f" font-family="monospace" font-size="24">ARBITRUM · NON-CUSTODIAL · FOUNDRY</text>
+  <text x="130" y="325" fill="#72e0b2" font-family="Arial,sans-serif" font-size="42">Liquidity, on course.</text>
+  <text x="130" y="380" fill="#8fa69f" font-family="monospace" font-size="24">ARBITRUM · NON-CUSTODIAL · LIVE QUOTES</text>
 </svg>

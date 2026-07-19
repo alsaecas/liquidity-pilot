@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LiquidityPilot",
     description: "One-click V2 liquidity management on Arbitrum",
-    images: ["/social-preview.svg"],
+    images: [{ url: "/social-preview.png", width: 1200, height: 630, alt: "LiquidityPilot — liquidity, on course." }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/social-preview.png"],
   },
 };
 

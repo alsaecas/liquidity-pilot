@@ -38,3 +38,19 @@ quotes, slippage, and deadlines.
 Before any real deployment, obtain an independent review, test the exact target router/factory,
 set conservative slippage, verify bytecode and pair tokens, and rehearse with low-value funds.
 Never describe this repository as audited.
+# Frontend execution safeguards
+
+- Deployment addresses are chain-scoped. Reviewed Arbitrum constants are used only with chain
+  `42161`; local `31337` requires an entirely explicit address set.
+- Invalid or partial public configuration degrades to non-submitting demo mode.
+- Numeric preparation uses bigint base units. Decimal precision, positive amounts, balances,
+  LP percentages, deadlines, and slippage (`0–50%`) are checked before simulation.
+- Slippage minima are derived from the same live quote or reserve estimate used in the preview;
+  values above 5% receive an additional warning.
+- The app never requests unlimited approval. Sufficient allowance is reused, zero allowance gets
+  one exact approval, and non-zero insufficient allowance is reset before exact approval.
+- The persistent user-to-LiquidityPilot allowance can be reused or revoked by the user. The
+  contract clears only its own router-facing approvals after each flow.
+- Main operations run through `simulateContract`, require a successful mined receipt, and refresh
+  balances, LP ownership, allowances, reserves, and quotes after confirmation.
+- Transaction links are emitted only for Arbitrum; local confirmations are labelled local.

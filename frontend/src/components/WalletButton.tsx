@@ -1,24 +1,27 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { arbitrum } from "wagmi/chains";
 import { compactAddress } from "@/lib/format";
+import { deploymentConfig } from "@/lib/deployment";
 
 export function WalletButton() {
   const { address, chainId, isConnected } = useAccount();
   const { connectors, connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const injectedConnectors = connectors.filter((connector) => connector.type === "injected");
+  const expectedChain = deploymentConfig.mode === "live" ? deploymentConfig.chainId : null;
+  const expectedChainName = deploymentConfig.mode === "live" ? deploymentConfig.chainName : "";
 
-  if (isConnected && chainId !== arbitrum.id && chainId !== 31337) {
+  if (isConnected && expectedChain && chainId !== expectedChain) {
     return (
       <button
         className="button button-warning"
         disabled={isSwitching}
-        onClick={() => switchChain({ chainId: arbitrum.id })}
+        onClick={() => switchChain({ chainId: expectedChain })}
         type="button"
       >
-        {isSwitching ? "Switching…" : "Switch to Arbitrum"}
+        {isSwitching ? "Switching…" : `Switch to ${expectedChainName}`}
       </button>
     );
   }
@@ -32,11 +35,35 @@ export function WalletButton() {
     );
   }
 
+  if (injectedConnectors.length === 0) {
+    return <a className="button button-secondary" href="https://ethereum.org/en/wallets/find-wallet/" rel="noreferrer" target="_blank">Install wallet ↗</a>;
+  }
+
+  if (injectedConnectors.length > 1) {
+    return (
+      <label className="wallet-select">
+        <span className="sr-only">Choose wallet</span>
+        <select
+          aria-label="Choose wallet"
+          defaultValue=""
+          disabled={isPending}
+          onChange={(event) => {
+            const connector = injectedConnectors.find((item) => item.uid === event.target.value);
+            if (connector) connect({ connector });
+          }}
+        >
+          <option disabled value="">{isPending ? "Connecting…" : "Choose wallet"}</option>
+          {injectedConnectors.map((connector) => <option key={connector.uid} value={connector.uid}>{connector.name}</option>)}
+        </select>
+      </label>
+    );
+  }
+
   return (
     <button
       className="button button-primary"
-      disabled={isPending || connectors.length === 0}
-      onClick={() => connectors[0] && connect({ connector: connectors[0] })}
+      disabled={isPending}
+      onClick={() => connect({ connector: injectedConnectors[0] })}
       type="button"
     >
       {isPending ? "Connecting…" : "Connect wallet"}
